@@ -96,7 +96,16 @@ jobs:
           echo -e "REPO_URL: [ ${REPO_URL} ]\nREPO_BRANCH: [ ${REPO_BRANCH} ]\nTAGS_NAME: [ ${TAGS_NAME} ]"
           df -hT ${PWD}
           echo "status=success" >> ${GITHUB_OUTPUT}
-
+          
+      - name: Free up disk space
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo mkdir -p -m 777 /mnt/openwrt/dl /mnt/openwrt/bin /mnt/openwrt/staging_dir
+          ln -sf /mnt/openwrt/dl openwrt/dl
+          ln -sf /mnt/openwrt/bin openwrt/bin
+          ln -sf /mnt/openwrt/staging_dir openwrt/staging_dir
+          
       - name: Load custom feeds
         run: |
           [[ -f "${FEEDS_CONF}" ]] && cp -f ${FEEDS_CONF} openwrt/feeds.conf.default

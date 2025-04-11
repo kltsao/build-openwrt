@@ -97,14 +97,28 @@ jobs:
           df -hT ${PWD}
           echo "status=success" >> ${GITHUB_OUTPUT}
           
-      - name: Free up disk space
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo mkdir -p -m 777 /mnt/openwrt/dl /mnt/openwrt/bin /mnt/openwrt/staging_dir
-          ln -sf /mnt/openwrt/dl openwrt/dl
-          ln -sf /mnt/openwrt/bin openwrt/bin
-          ln -sf /mnt/openwrt/staging_dir openwrt/staging_dir
+      # - name: Free up disk space
+      #   env:
+      #     DEBIAN_FRONTEND: noninteractive
+      #   run: |
+      #     sudo mkdir -p -m 777 /mnt/openwrt/dl /mnt/openwrt/bin /mnt/openwrt/staging_dir
+      #     ln -sf /mnt/openwrt/dl openwrt/dl
+      #     ln -sf /mnt/openwrt/bin openwrt/bin
+      #     ln -sf /mnt/openwrt/staging_dir openwrt/staging_dir
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
           
       - name: Load custom feeds
         run: |

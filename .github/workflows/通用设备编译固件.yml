@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: "Select the source branch"
+        description: "选择要编译的源分支"
         required: false
         default: "openwrt-main"
         type: choice
@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Initialization environment
+      - name: 环境初始化
         id: init
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -59,7 +59,7 @@ jobs:
           sudo timedatectl set-timezone "${TZ}"
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Clone source code [ ${{ inputs.source_branch }} ]
+      - name: 克隆源代码 [ ${{ inputs.source_branch }} ]
         id: codes
         working-directory: /mnt/workdir
         if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
@@ -119,20 +119,20 @@ jobs:
       #     docker-images: true
       #     swap-storage: true
           
-      - name: Load custom feeds
+      - name: 加载自定义Feeds
         run: |
           [[ -f "${FEEDS_CONF}" ]] && cp -f ${FEEDS_CONF} openwrt/feeds.conf.default
           chmod +x ${DIY_P1_SH}
           cd openwrt/
           ${GITHUB_WORKSPACE}/${DIY_P1_SH}
 
-      - name: Update feeds
+      - name: 更新Feeds
         run: cd openwrt/ && ./scripts/feeds update -a
 
-      - name: Install feeds
+      - name: 安装Feeds
         run: cd openwrt/ && ./scripts/feeds install -a
 
-      - name: Load custom configuration
+      - name: 加载自定义配置
         run: |
           [[ -d "files" ]] && mv -f files openwrt/files
           [[ -e "${CONFIG_FILE}" ]] && cp -f ${CONFIG_FILE} openwrt/.config
@@ -140,7 +140,7 @@ jobs:
           cd openwrt/
           ${GITHUB_WORKSPACE}/${DIY_P2_SH}
 
-      - name: Download package
+      - name: 下载软件包
         id: package
         run: |
           cd openwrt/
@@ -149,10 +149,10 @@ jobs:
           find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
 
-      - name: Install Clang
+      - name: 安装Clang
         run: sudo -E apt-get -y install clang
 
-      - name: Compile the OpenWrt
+      - name: 编译OpenWRT
         id: compile
         run: |
           cd openwrt/
@@ -161,18 +161,18 @@ jobs:
           echo "status=success" >> ${GITHUB_OUTPUT}
 
 
-      - name: Check space usage
+      - name: 检视磁盘空间
         if: (!cancelled())
         run: df -hT
 
-      - name: Upload bin directory
+      - name: 上传Bin目录
         uses: actions/upload-artifact@main
         if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
         with:
           name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: openwrt/bin
 
-      - name: Organize files
+      - name: 组织文件
         id: organize
         if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         run: |
@@ -181,14 +181,14 @@ jobs:
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "::set-output name=status::success"
 
-      - name: Upload firmware directory
+      - name: 上传固件目录
         uses: actions/upload-artifact@main
         if: steps.organize.outputs.status == 'success' && !cancelled()
         with:
           name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
           path: ${{ env.FIRMWARE }}
 
-      - name: Generate release tag
+      - name: 生成发布版标签
         id: tag
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         run: |
@@ -198,7 +198,7 @@ jobs:
           [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
           echo "::set-output name=status::success"
 
-      - name: Upload firmware to release
+      - name: 上传固件到发布版
         uses: softprops/action-gh-release@v1
         if: steps.tag.outputs.status == 'success' && !cancelled()
         env:
@@ -208,7 +208,7 @@ jobs:
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*
 
-      - name: Delete workflow runs
+      - name: 删除工作流运行实例
         uses: GitRML/delete-workflow-runs@main
         with:
           retain_days: 1
